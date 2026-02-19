@@ -1,0 +1,226 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (max-width: 480px) {
+  .auth-card, .dashboard-card {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-card h1 {
+  color: #0f3460;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+}
+
+.auth-card h2 {
+  color: #333;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.auth-card input,
+.auth-card select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.auth-card button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #0f3460;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.auth-card button:hover:not(:disabled) {
+  background: #16213e;
+}
+
+.auth-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-card .error {
+  color: #c0392b;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.auth-link a,
+.auth-link .link {
+  color: #0f3460;
+  text-decoration: none;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}
+
+.loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+  font-size: 1.25rem;
+}
+
+.dashboard-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 450px;
+  position: relative;
+}
+
+.logout-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  background: transparent;
+  color: #0f3460;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #0f3460;
+  color: white;
+}
+
+.dashboard-card h1 {
+  color: #0f3460;
+  margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+}
+
+.dashboard-card h2 {
+  color: #555;
+  font-weight: 500;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.check-balance-btn {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  background: #0f3460;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.check-balance-btn:hover:not(:disabled) {
+  background: #16213e;
+}
+
+.check-balance-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.balance-display {
+  margin-top: 1.5rem;
+  padding: 1rem;
+}
+
+.balance-message {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f3460;
+}
+
+.dashboard-card .error {
+  color: #c0392b;
+  margin-top: 1rem;
+}
+
+.celebration-bg {
+  animation: celebrate-bg 2s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.celebration-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 105, 180, 0.1) 0%, transparent 50%);
+  animation: gradient-shift 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes celebrate-bg {
+  0%, 100% { filter: none; }
+  50% { filter: brightness(1.1); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
