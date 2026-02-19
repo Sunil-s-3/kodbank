@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import ProtectedRoute from '../components/ProtectedRoute'
-import API from '../api'
+import API from "../api";
 
 function DashboardContent() {
   const navigate = useNavigate()
