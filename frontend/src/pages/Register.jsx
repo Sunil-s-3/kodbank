@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
+import API from '../api'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -25,9 +25,7 @@ export default function Register() {
     setError('')
     setLoading(true)
     try {
-      const res = await axios.post('/api/auth/register', formData, {
-        withCredentials: true
-      })
+      const res = await API.post('/auth/register', formData)
       if (res.data.success) {
         navigate('/login')
       } else {

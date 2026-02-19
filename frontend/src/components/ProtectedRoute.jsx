@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
-import axios from 'axios'
+import API from '../api'
 
 export default function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
 
   useEffect(() => {
-    axios.get('/api/auth/me', { withCredentials: true })
+    API.get('/auth/me')
       .then(() => setAuthenticated(true))
       .catch(() => setAuthenticated(false))
       .finally(() => setLoading(false))

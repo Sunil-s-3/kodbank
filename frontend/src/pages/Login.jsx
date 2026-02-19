@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
+import API from '../api'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -18,9 +18,7 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      const res = await axios.post('/api/auth/login', formData, {
-        withCredentials: true
-      })
+      const res = await API.post('/auth/login', formData)
       if (res.data.success) {
         navigate('/dashboard')
       } else {
