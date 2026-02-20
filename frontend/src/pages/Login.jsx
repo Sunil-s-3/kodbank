@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import API from "../api";
+import API from "../utils/api";
 
 export default function Login() {
   const navigate = useNavigate()
@@ -18,7 +18,7 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      const res = await API.post('/auth/login', formData)
+      const res = await API.post("/api/auth/login", formData)
       if (res.data.success) {
         navigate('/dashboard')
       } else {

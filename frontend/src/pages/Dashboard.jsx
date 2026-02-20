@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import ProtectedRoute from '../components/ProtectedRoute'
-import API from "../api";
+import API from "../utils/api";
 
 function DashboardContent() {
   const navigate = useNavigate()
@@ -36,7 +36,7 @@ function DashboardContent() {
     setLoading(true)
     setShowCelebration(false)
     try {
-      const res = await API.get('/balance')
+      const res = await API.get("/api/balance")
       if (res.data.success) {
         setBalance(res.data.balance)
         setShowCelebration(true)
@@ -51,7 +51,7 @@ function DashboardContent() {
   }
 
   const handleLogout = async () => {
-    await API.post('/auth/logout')
+    await API.post("/api/auth/logout")
     navigate('/login')
     window.location.reload()
   }
