@@ -1,33 +1,44 @@
 # Kodbank
 
-Full-stack banking application with user registration, JWT authentication, and balance checking.
+A banking app with user registration, JWT authentication, and balance check.
 
 ## Setup
 
-1. Install dependencies:
-   ```bash
-   npm install
-   cd frontend && npm install
-   ```
+### 1. Database
 
-2. Configure environment (`.env` is already set up for Aiven MySQL):
-   - `DB_URL` - MySQL connection string
-   - `JWT_SECRET` - Secret for JWT signing
-   - `FRONTEND_URL` - Frontend origin for CORS (default: http://localhost:5173)
+Run the migration to create tables in Aiven MySQL:
 
-3. Run database migration:
-   ```bash
-   npm run db:migrate
-   ```
+```bash
+cd backend
+npm install
+npm run migrate
+```
 
-4. Start the application:
-   ```bash
-   npm run dev
-   ```
-   This starts both the backend (port 5000) and frontend (port 5173).
+If tables already exist with wrong schema, run `npm run reset-tables` to drop and recreate them (destructive).
 
-## Usage
+### 2. Backend
 
-- **Register**: Visit http://localhost:5173/register and create an account (role: customer)
-- **Login**: Use your username and password
-- **Dashboard**: After login, click "Check Balance" to see your balance with celebration animation
+```bash
+cd backend
+npm install
+# Ensure .env has DB_URL, JWT_SECRET, JWT_EXPIRY, PORT, FRONTEND_URL
+npm run dev
+```
+
+Backend runs on http://localhost:5000
+
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend runs on http://localhost:5173 (proxies /api to backend)
+
+## Flow
+
+1. Register at /register (user_id, user_name, password, email, phone, role: Customer)
+2. Login at /login (username, password) - receives JWT in httpOnly cookie
+3. Dashboard at /dashboard - click "Check Balance" to see balance with confetti animation

@@ -1,89 +1,85 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import confetti from 'canvas-confetti'
-import ProtectedRoute from '../components/ProtectedRoute'
-import API from "../utils/api";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+import confetti from 'canvas-confetti';
 
-function DashboardContent() {
-  const navigate = useNavigate()
-  const [balance, setBalance] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [showCelebration, setShowCelebration] = useState(false)
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const [balance, setBalance] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const triggerConfetti = () => {
+    const colors = ['#e94560', '#0f3460', '#a2a8d3', '#ffd93d', '#6bcb77'];
     confetti({
-      particleCount: 150,
-      spread: 100,
-      origin: { y: 0.6 }
-    })
-    confetti({
-      particleCount: 100,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0 }
-    })
-    confetti({
-      particleCount: 100,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1 }
-    })
-  }
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors,
+    });
+    setTimeout(() => {
+      confetti({
+        particleCount: 60,
+        angle: 60,
+        spread: 60,
+        origin: { x: 0 },
+        colors,
+      });
+      confetti({
+        particleCount: 60,
+        angle: 120,
+        spread: 60,
+        origin: { x: 1 },
+        colors,
+      });
+    }, 150);
+    setTimeout(() => {
+      confetti({
+        particleCount: 40,
+        scalar: 1.2,
+        origin: { y: 0.8 },
+        colors,
+      });
+    }, 300);
+  };
 
   const handleCheckBalance = async () => {
-    setError('')
-    setLoading(true)
-    setShowCelebration(false)
+    setError('');
+    setLoading(true);
+    setBalance(null);
     try {
-      const res = await API.get("/api/balance")
-      if (res.data.success) {
-        setBalance(res.data.balance)
-        setShowCelebration(true)
-        triggerConfetti()
-      }
+      const { data } = await api.get('/user/balance');
+      setBalance(data.balance);
+      triggerConfetti();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch balance')
-      setBalance(null)
+      if (err.response?.status === 401) {
+        navigate('/login', { replace: true });
+      } else {
+        setError(err.response?.data?.error || 'Failed to fetch balance');
+      }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
-  const handleLogout = async () => {
-    await API.post("/api/auth/logout")
-    navigate('/login')
-    window.location.reload()
-  }
+  };
 
   return (
-    <div className={`dashboard-page ${showCelebration ? 'celebration-bg' : ''}`}>
+    <div className="dashboard-page">
       <div className="dashboard-card">
-        <button className="logout-btn" onClick={handleLogout}>Logout</button>
-        <h1>Welcome to Kodbank</h1>
-        <h2>User Dashboard</h2>
+        <h1>Kodbank Dashboard</h1>
         <button
           className="check-balance-btn"
           onClick={handleCheckBalance}
           disabled={loading}
         >
-          {loading ? 'Loading...' : 'Check Balance'}
+          {loading ? 'Checking...' : 'Check Balance'}
         </button>
-        {error && <p className="error">{error}</p>}
-        {balance !== null && !error && (
+        {balance !== null && (
           <div className="balance-display">
-            <p className="balance-message">Your balance is: ₹{balance.toLocaleString()}</p>
+            <p className="balance-message">Your balance is: {balance}</p>
           </div>
         )}
+        {error && <p className="error">{error}</p>}
       </div>
     </div>
-  )
-}
-
-export default function Dashboard() {
-  return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
-  )
+  );
 }

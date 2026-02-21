@@ -1,6 +1,6 @@
 /**
- * Database migration script for Kodbank
- * Creates kodusers and CJWT tables in Aiven MySQL
+ * Reset tables - drops and recreates kodusers and CJWT
+ * Use when schema needs to match the expected structure
  */
 
 const mysql = require('mysql2/promise');
@@ -12,7 +12,7 @@ if (!DB_URL) {
   process.exit(1);
 }
 
-async function migrate() {
+async function reset() {
   let connection;
   try {
     const url = new URL(DB_URL);
@@ -25,11 +25,16 @@ async function migrate() {
       ssl: { rejectUnauthorized: false },
     });
 
-    console.log('Connected to MySQL. Running migrations...');
+    console.log('Dropping tables...');
+    await connection.execute('SET FOREIGN_KEY_CHECKS = 0');
+    await connection.execute('DROP TABLE IF EXISTS CJWT');
+    await connection.execute('DROP TABLE IF EXISTS kodusers');
+    await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
+    console.log('Tables dropped.');
 
-    // Create kodusers table
+    console.log('Creating kodusers...');
     await connection.execute(`
-      CREATE TABLE IF NOT EXISTS kodusers (
+      CREATE TABLE kodusers (
         uid INT PRIMARY KEY AUTO_INCREMENT,
         username VARCHAR(255) UNIQUE NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
@@ -40,11 +45,10 @@ async function migrate() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Table kodusers created or already exists.');
 
-    // Create CJWT table
+    console.log('Creating CJWT...');
     await connection.execute(`
-      CREATE TABLE IF NOT EXISTS CJWT (
+      CREATE TABLE CJWT (
         token_id INT PRIMARY KEY AUTO_INCREMENT,
         token TEXT NOT NULL,
         user_id INT NOT NULL,
@@ -56,15 +60,14 @@ async function migrate() {
         INDEX idx_expiry (expiry)
       )
     `);
-    console.log('Table CJWT created or already exists.');
 
-    console.log('Migration completed successfully.');
+    console.log('Reset completed successfully.');
   } catch (err) {
-    console.error('Migration failed:', err.message);
+    console.error('Reset failed:', err.message);
     process.exit(1);
   } finally {
     if (connection) await connection.end();
   }
 }
 
-migrate();
+reset();

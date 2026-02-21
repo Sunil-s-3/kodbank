@@ -1,36 +1,31 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import API from "../utils/api";
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import api from '../utils/api';
 
 export default function Login() {
-  const navigate = useNavigate()
-  const [formData, setFormData] = useState({ username: '', password: '' })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-    setError('')
-  }
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError('');
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
-      const res = await API.post("/api/auth/login", formData)
-      if (res.data.success) {
-        navigate('/dashboard')
-      } else {
-        setError(res.data.message || 'Login failed')
-      }
+      await api.post('/auth/login', form);
+      navigate('/dashboard');
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed'
-      setError(msg)
+      setError(err.response?.data?.error || 'Login failed');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="auth-page">
@@ -42,7 +37,7 @@ export default function Login() {
             type="text"
             name="username"
             placeholder="Username"
-            value={formData.username}
+            value={form.username}
             onChange={handleChange}
             required
           />
@@ -50,7 +45,7 @@ export default function Login() {
             type="password"
             name="password"
             placeholder="Password"
-            value={formData.password}
+            value={form.password}
             onChange={handleChange}
             required
           />
@@ -60,9 +55,9 @@ export default function Login() {
           </button>
         </form>
         <p className="auth-link">
-          Don&apos;t have an account? <Link to="/register">Register</Link>
+          Don't have an account? <Link to="/register">Register</Link>
         </p>
       </div>
     </div>
-  )
+  );
 }

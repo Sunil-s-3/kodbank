@@ -1,77 +1,50 @@
-import { Router } from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { body, validationResult } from 'express-validator';
-import pool from '../config/db.js';
-import { authMiddleware } from '../middleware/auth.js';
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { pool } = require('../config/db');
 
-const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-me';
+const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-me';
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
+const isProduction = process.env.NODE_ENV === 'production';
 
-router.get('/me', authMiddleware, (req, res) => {
-  res.json({ success: true, user: req.user });
-});
-
-router.post('/logout', (req, res) => {
-  res.clearCookie('token', {
-    httpOnly: true,
-    sameSite: 'strict'
-  });
-  res.json({ success: true });
-});
-
-router.post('/register', [
-  body('user_id').notEmpty().withMessage('User ID is required'),
-  body('user_name').notEmpty().trim().withMessage('Username is required'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('phone').notEmpty().withMessage('Phone is required'),
-  body('role').equals('customer').withMessage('Role must be customer')
-], async (req, res, next) => {
+// POST /api/auth/register
+router.post('/register', async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
+    const { user_id, user_name, password, email, phone, role } = req.body;
+
+    if (!user_id || !user_name || !password || !email) {
+      return res.status(400).json({ success: false, error: 'user_id, user_name, password, and email are required' });
     }
 
-    const { user_name, password, email, phone } = req.body;
+    if (role && role !== 'Customer') {
+      return res.status(400).json({ success: false, error: 'Only Customer role is allowed for registration' });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.execute(
-      `INSERT INTO kodusers (username, email, password, balance, phone, role) 
-       VALUES (?, ?, ?, 100000, ?, 'Customer')`,
-      [user_name, email, hashedPassword, phone]
+      `INSERT INTO kodusers (username, email, password, balance, phone, role) VALUES (?, ?, ?, 100000, ?, 'Customer')`,
+      [user_name, email, hashedPassword, phone || null]
     );
 
-    res.status(201).json({
-      success: true,
-      message: 'Registration successful. Please login.',
-      redirect: '/login'
-    });
+    res.status(201).json({ success: true });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({
-        success: false,
-        message: 'Username or email already exists'
-      });
+      return res.status(400).json({ success: false, error: 'Username or email already exists' });
     }
     next(err);
   }
 });
 
-router.post('/login', [
-  body('username').notEmpty().trim().withMessage('Username is required'),
-  body('password').notEmpty().withMessage('Password is required')
-], async (req, res, next) => {
+// POST /api/auth/login
+router.post('/login', async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
-
     const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ success: false, error: 'Username and password are required' });
+    }
 
     const [rows] = await pool.execute(
       'SELECT uid, username, password, role FROM kodusers WHERE username = ?',
@@ -79,42 +52,41 @@ router.post('/login', [
     );
 
     if (rows.length === 0) {
-      return res.status(401).json({ success: false, message: 'Invalid username or password' });
+      return res.status(401).json({ success: false, error: 'Invalid username or password' });
     }
 
     const user = rows[0];
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(401).json({ success: false, message: 'Invalid username or password' });
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      return res.status(401).json({ success: false, error: 'Invalid username or password' });
     }
 
     const token = jwt.sign(
-      { sub: username, role: user.role },
+      { sub: user.username, role: user.role },
       JWT_SECRET,
-      { algorithm: 'HS256', expiresIn: JWT_EXPIRY }
+      { expiresIn: JWT_EXPIRY, algorithm: 'HS256' }
     );
 
-    const expiryDate = new Date();
-    expiryDate.setHours(expiryDate.getHours() + 24);
+    const decoded = jwt.decode(token);
+    const expiryDate = decoded?.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    await pool.execute('DELETE FROM CJWT WHERE expiry < NOW()');
     await pool.execute(
-      'INSERT INTO CJWT (token, uid, expiry) VALUES (?, ?, ?)',
+      'INSERT INTO CJWT (token, user_id, expiry) VALUES (?, ?, ?)',
       [token, user.uid, expiryDate]
     );
 
-    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', token, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/',
     });
 
-    res.status(200).json({ success: true });
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }
 });
 
-export default router;
+module.exports = router;
