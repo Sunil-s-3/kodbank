@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const { pool } = require('../config/db');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
 const isProduction = process.env.NODE_ENV === 'production';
 
