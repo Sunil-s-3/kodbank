@@ -9,12 +9,16 @@ const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
 const isProduction = process.env.NODE_ENV === 'production';
 
 // POST /api/auth/register
-router.post('/register', async (req, res, next) => {
+router.post('/register', async (req, res) => {
+  console.log("Register route hit");
   try {
     const { username, password, email, phone, role } = req.body;
 
     if (!username || !password || !email) {
-      return res.status(400).json({ success: false, error: 'username, password, and email are required' });
+      return res.status(400).json({
+        success: false,
+        error: "username, password and email are required"
+      });
     }
 
     const userRole = role || 'Customer';
@@ -29,12 +33,16 @@ router.post('/register', async (req, res, next) => {
       [username, email, hashedPassword, phone || null, userRole]
     );
 
-    res.status(201).json({ success: true });
-  } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY') {
+    return res.status(201).json({ success: true });
+  } catch (error) {
+    console.error("Register Error:", error);
+    if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ success: false, error: 'Username or email already exists' });
     }
-    next(err);
+    return res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
   }
 });
 
