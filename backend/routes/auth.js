@@ -11,21 +11,22 @@ const isProduction = process.env.NODE_ENV === 'production';
 // POST /api/auth/register
 router.post('/register', async (req, res, next) => {
   try {
-    const { user_id, user_name, password, email, phone, role } = req.body;
+    const { username, password, email, phone, role } = req.body;
 
-    if (!user_id || !user_name || !password || !email) {
-      return res.status(400).json({ success: false, error: 'user_id, user_name, password, and email are required' });
+    if (!username || !password || !email) {
+      return res.status(400).json({ success: false, error: 'username, password, and email are required' });
     }
 
-    if (role && role !== 'Customer') {
+    const userRole = role || 'Customer';
+    if (userRole !== 'Customer') {
       return res.status(400).json({ success: false, error: 'Only Customer role is allowed for registration' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.execute(
-      `INSERT INTO kodusers (username, email, password, balance, phone, role) VALUES (?, ?, ?, 100000, ?, 'Customer')`,
-      [user_name, email, hashedPassword, phone || null]
+      `INSERT INTO kodusers (username, email, password, phone, role) VALUES (?, ?, ?, ?, ?)`,
+      [username, email, hashedPassword, phone || null, userRole]
     );
 
     res.status(201).json({ success: true });

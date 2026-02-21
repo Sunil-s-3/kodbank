@@ -5,8 +5,7 @@ import api from '../utils/api';
 export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    user_id: '',
-    user_name: '',
+    username: '',
     password: '',
     email: '',
     phone: '',
@@ -42,17 +41,9 @@ export default function Register() {
         <form onSubmit={handleSubmit}>
           <input
             type="text"
-            name="user_id"
-            placeholder="User ID"
-            value={form.user_id}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="user_name"
+            name="username"
             placeholder="Username"
-            value={form.user_name}
+            value={form.username}
             onChange={handleChange}
             required
           />
