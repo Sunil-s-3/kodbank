@@ -8,31 +8,33 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
 const isProduction = process.env.NODE_ENV === 'production';
 
+// GET /api/auth/ping - diagnostic: always returns JSON body
+router.get("/ping", (req, res) => {
+  const body = JSON.stringify({ ok: true, service: "kodbank-auth" });
+  res.status(200).setHeader('Content-Type', 'application/json').setHeader('Content-Length', Buffer.byteLength(body, 'utf8'));
+  res.end(body);
+});
+
 // POST /api/auth/register
-router.post("/register", async (req, res) => {
-  // #region agent log
-  fetch('http://127.0.0.1:7430/ingest/3e6faf8c-0bd8-4293-a4b5-ee47ad7ec233',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eb2222'},body:JSON.stringify({sessionId:'eb2222',location:'auth.js:register:entry',message:'Register route hit',data:{bodyKeys:req.body?Object.keys(req.body):[]},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
-  console.log("REGISTER ROUTE HIT");
-  console.log("Request body:", req.body);
+router.post('/register', async (req, res) => {
+  console.log("REGISTER HIT");
+  console.log("BODY:", req.body);
   try {
     const { username, password, email, phone, role } = req.body;
 
     if (!username || !password || !email) {
-      // #region agent log
-      fetch('http://127.0.0.1:7430/ingest/3e6faf8c-0bd8-4293-a4b5-ee47ad7ec233',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eb2222'},body:JSON.stringify({sessionId:'eb2222',location:'auth.js:register:validation',message:'Validation failed',data:{hasUsername:!!username,hasPassword:!!password,hasEmail:!!email},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
       console.log("Validation failed");
-      return res.status(400).json({
-        success: false,
-        error: "username, password and email are required"
-      });
+      const body = JSON.stringify({ success: false, error: "username, password and email are required" });
+      res.status(400).setHeader('Content-Type', 'application/json').setHeader('Content-Length', Buffer.byteLength(body, 'utf8')).setHeader('X-Register-Handled', 'yes');
+      return res.end(body);
     }
 
     console.log("Validation passed");
     const userRole = role || 'Customer';
     if (userRole !== 'Customer') {
-      return res.status(400).json({ success: false, error: 'Only Customer role is allowed for registration' });
+      const body = JSON.stringify({ success: false, error: 'Only Customer role is allowed for registration' });
+      res.status(400).setHeader('Content-Type', 'application/json').setHeader('Content-Length', Buffer.byteLength(body, 'utf8')).setHeader('X-Register-Handled', 'yes');
+      return res.end(body);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -42,27 +44,21 @@ router.post("/register", async (req, res) => {
       [username, email, hashedPassword, phone || null, userRole]
     );
 
-    // #region agent log
-    fetch('http://127.0.0.1:7430/ingest/3e6faf8c-0bd8-4293-a4b5-ee47ad7ec233',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eb2222'},body:JSON.stringify({sessionId:'eb2222',location:'auth.js:register:insertDone',message:'User inserted successfully',data:{},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
     console.log("User inserted successfully");
 
-    return res.status(201).json({
-      success: true,
-      message: "User registered successfully"
-    });
+    const body = JSON.stringify({ success: true, message: "User registered successfully" });
+    res.status(201).setHeader('Content-Type', 'application/json').setHeader('Content-Length', Buffer.byteLength(body, 'utf8')).setHeader('X-Register-Handled', 'yes');
+    return res.end(body);
   } catch (error) {
-    // #region agent log
-    fetch('http://127.0.0.1:7430/ingest/3e6faf8c-0bd8-4293-a4b5-ee47ad7ec233',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eb2222'},body:JSON.stringify({sessionId:'eb2222',location:'auth.js:register:catch',message:'REGISTER ERROR',data:{code:error?.code,name:error?.name},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
-    // #endregion
     console.error("REGISTER ERROR:", error);
     if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ success: false, error: 'Username or email already exists' });
+      const body = JSON.stringify({ success: false, error: 'Username or email already exists' });
+      res.status(400).setHeader('Content-Type', 'application/json').setHeader('Content-Length', Buffer.byteLength(body, 'utf8')).setHeader('X-Register-Handled', 'yes');
+      return res.end(body);
     }
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Internal server error"
-    });
+    const body = JSON.stringify({ success: false, error: error.message || "Internal server error" });
+    res.status(500).setHeader('Content-Type', 'application/json').setHeader('Content-Length', Buffer.byteLength(body, 'utf8')).setHeader('X-Register-Handled', 'yes');
+    return res.end(body);
   }
 });
 

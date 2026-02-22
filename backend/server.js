@@ -10,16 +10,25 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: function (origin, callback) {
+    if (origin) callback(null, origin);
+    else callback(null, process.env.FRONTEND_URL || true);
+  },
   credentials: true
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 
 app.use(errorHandler);
+
+app.use((err, req, res, next) => {
+  console.error("GLOBAL ERROR:", err);
+  res.status(500).json({ success: false, message: "Server error" });
+});
 
 async function start() {
   const connected = await testConnection();
