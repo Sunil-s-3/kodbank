@@ -18,8 +18,14 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await api.post('/auth/login', form);
-      navigate('/dashboard');
+      const response = await api.post('/auth/login', form);
+      if (response.data.success) {
+        const token = response.data.token;
+        if (token) {
+          localStorage.setItem("token", token);
+        }
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
     } finally {

@@ -100,15 +100,14 @@ router.post('/login', async (req, res, next) => {
       [token, user.uid, expiryDate]
     );
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,
-      path: '/',
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user.uid,
+        username: user.username
+      }
     });
-
-    res.json({ success: true });
   } catch (err) {
     next(err);
   }
