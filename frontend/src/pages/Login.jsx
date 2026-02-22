@@ -21,9 +21,8 @@ export default function Login() {
       const response = await api.post('/auth/login', form);
       if (response.data.success) {
         const token = response.data.token;
-        if (token) {
-          localStorage.setItem("token", token);
-        }
+        if (token) localStorage.setItem("token", token);
+        if (response.data.user?.username) localStorage.setItem("username", response.data.user.username);
         navigate("/dashboard");
       }
     } catch (err) {
