@@ -321,12 +321,31 @@ body {
   cursor: pointer;
   box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
   animation: neoGlow 2.5s ease-in-out infinite;
-  transition: transform 0.2s;
+  transition: transform 0.2s, opacity 0.2s;
 }
 
 .neo-summon-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 28px rgba(6, 182, 212, 0.5);
+}
+
+.neo-summon-btn.neo-btn {
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+.neo-summon-btn.neo-btn:hover {
+  opacity: 0.75;
+}
+
+.neo-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.neo-subtitle {
+  font-size: 11px;
+  opacity: 0.8;
 }
 
 @keyframes neoGlow {
@@ -379,6 +398,37 @@ body {
 .stat-trend-up { color: #4ade80; }
 .stat-trend-down { color: #f87171; }
 .stat-trend-neutral { color: #94a3b8; }
+
+.view-balance-btn {
+  display: block;
+  margin: 0.5rem 0;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(233, 69, 96, 0.2);
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.view-balance-btn:hover:not(:disabled) {
+  background: rgba(233, 69, 96, 0.35);
+  transform: translateY(-2px);
+}
+
+.view-balance-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.balance-amount {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0.35rem 0 0 0;
+}
 
 .stat-refresh {
   margin-top: 0.75rem;

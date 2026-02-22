@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import confetti from 'canvas-confetti';
@@ -22,24 +22,15 @@ const MOCK_TRANSACTIONS = [
   { id: 5, name: 'Grocery Store', category: 'Food', date: '2024-02-16', amount: '-$65.40', status: 'Completed' },
 ];
 
-const MOCK_NEO_RESPONSES = [
-  "Your spending increased by 8% this week.",
-  "You can save $200 by reducing subscriptions.",
-  "Your balance is healthy. Consider investing 10% in savings.",
-  "No unusual activity detected on your account.",
-];
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const username = localStorage.getItem('username') || 'User';
   const [balance, setBalance] = useState(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
+  const [showBalance, setShowBalance] = useState(false);
   const [error, setError] = useState('');
-  const [neoOpen, setNeoOpen] = useState(false);
-  const [neoMessages, setNeoMessages] = useState([]);
-  const [neoInput, setNeoInput] = useState('');
 
-  const triggerConfetti = () => {
+  const runConfetti = () => {
     const colors = ['#e94560', '#0f3460', '#a2a8d3', '#ffd93d', '#6bcb77'];
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors });
     setTimeout(() => {
@@ -54,7 +45,6 @@ export default function Dashboard() {
     try {
       const { data } = await api.get('/user/balance');
       setBalance(data.balance);
-      triggerConfetti();
     } catch (err) {
       if (err.response?.status === 401) {
         navigate('/login', { replace: true });
@@ -66,25 +56,16 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchBalance();
-  }, []);
+  const handleViewBalance = async () => {
+    await fetchBalance();
+    setShowBalance(true);
+    runConfetti();
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     navigate('/login', { replace: true });
-  };
-
-  const handleNeoSubmit = (e) => {
-    e.preventDefault();
-    if (!neoInput.trim()) return;
-    setNeoMessages((prev) => [...prev, { role: 'user', text: neoInput }]);
-    setNeoInput('');
-    setTimeout(() => {
-      const reply = MOCK_NEO_RESPONSES[Math.floor(Math.random() * MOCK_NEO_RESPONSES.length)];
-      setNeoMessages((prev) => [...prev, { role: 'neo', text: reply }]);
-    }, 600);
   };
 
   return (
@@ -111,25 +92,35 @@ export default function Dashboard() {
             <h1>Welcome back, {username}</h1>
             <p>Here&apos;s what&apos;s happening with your finance today.</p>
           </div>
-          <button
-            type="button"
-            className="neo-summon-btn"
-            onClick={() => setNeoOpen(true)}
-          >
-            Summon Neo (Assistant)
+          <button type="button" className="neo-summon-btn neo-btn" disabled aria-label="Neo Assistant (coming soon)">
+            <div className="neo-title">Summon Neo</div>
+            <div className="neo-subtitle">(Assistant)</div>
           </button>
         </header>
 
         <section className="stat-cards">
           <div className="stat-card">
             <span className="stat-label">Total Balance</span>
-            <span className="stat-value">
-              {balanceLoading ? '...' : balance !== null ? `$${Number(balance).toLocaleString()}` : '—'}
-            </span>
-            <span className="stat-trend stat-trend-neutral">Live</span>
-            <button type="button" className="stat-refresh" onClick={fetchBalance} disabled={balanceLoading}>
-              Refresh
-            </button>
+            {!showBalance ? (
+              <button
+                type="button"
+                className="view-balance-btn"
+                onClick={handleViewBalance}
+                disabled={balanceLoading}
+              >
+                {balanceLoading ? 'Loading...' : 'View Balance'}
+              </button>
+            ) : (
+              <>
+                <h2 className="balance-amount">
+                  ${balance != null ? Number(balance).toLocaleString() : '—'}
+                </h2>
+                <span className="stat-trend stat-trend-neutral">Live</span>
+                <button type="button" className="stat-refresh" onClick={fetchBalance} disabled={balanceLoading}>
+                  Refresh
+                </button>
+              </>
+            )}
           </div>
           <div className="stat-card">
             <span className="stat-label">Monthly Income</span>
@@ -182,40 +173,6 @@ export default function Dashboard() {
           </div>
         </section>
       </main>
-
-      {neoOpen && (
-        <>
-          <div className="neo-overlay" onClick={() => setNeoOpen(false)} aria-hidden="true" />
-          <div className="neo-panel">
-            <div className="neo-panel-header">
-              <h3>Neo Assistant</h3>
-              <button type="button" className="neo-close" onClick={() => setNeoOpen(false)} aria-label="Close">
-                ×
-              </button>
-            </div>
-            <div className="neo-messages">
-              {neoMessages.length === 0 && (
-                <p className="neo-placeholder">Ask Neo about your finances...</p>
-              )}
-              {neoMessages.map((msg, i) => (
-                <div key={i} className={`neo-msg neo-msg-${msg.role}`}>
-                  {msg.text}
-                </div>
-              ))}
-            </div>
-            <form onSubmit={handleNeoSubmit} className="neo-form">
-              <input
-                type="text"
-                value={neoInput}
-                onChange={(e) => setNeoInput(e.target.value)}
-                placeholder="Ask Neo about your finances..."
-                className="neo-input"
-              />
-              <button type="submit" className="neo-send">Send</button>
-            </form>
-          </div>
-        </>
-      )}
     </div>
   );
 }
