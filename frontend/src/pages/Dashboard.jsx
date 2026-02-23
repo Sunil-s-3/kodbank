@@ -92,7 +92,12 @@ export default function Dashboard() {
             <h1>Welcome back, {username}</h1>
             <p>Here&apos;s what&apos;s happening with your finance today.</p>
           </div>
-          <button type="button" className="neo-summon-btn neo-btn" disabled aria-label="Neo Assistant (coming soon)">
+          <button
+            type="button"
+            className="neo-summon-btn"
+            onClick={() => window.open("https://sunil-3-neo-finance-assistant.hf.space", "_blank")}
+            aria-label="Open Neo AI Assistant"
+          >
             <div className="neo-title">Summon Neo</div>
             <div className="neo-subtitle">(Assistant)</div>
           </button>
